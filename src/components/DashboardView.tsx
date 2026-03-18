@@ -33,7 +33,7 @@ export function DashboardView() {
         <h2 className="text-sm font-bold text-foreground mb-2">{t("essentialPrices")}</h2>
         <div className="grid grid-cols-2 gap-2">
           {foodItems.map((item, i) => (
-            <motion.div key={item.id} {...fadeIn} transition={{ ...fadeIn.transition, delay: i * 0.03 }}>
+            <motion.div key={item.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: i * 0.03 }}>
               <PriceCard item={item} />
             </motion.div>
           ))}
