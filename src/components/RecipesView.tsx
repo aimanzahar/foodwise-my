@@ -1,16 +1,16 @@
 import { useI18n } from "@/lib/i18n";
-import { recipes } from "@/lib/data";
+import type { Recipe } from "@/lib/contracts";
 import { RecipeCard } from "./RecipeCard";
 import { motion } from "framer-motion";
 
 interface RecipesViewProps {
   pantry: string[];
+  recipes: Recipe[];
 }
 
-export function RecipesView({ pantry }: RecipesViewProps) {
+export function RecipesView({ pantry, recipes }: RecipesViewProps) {
   const { t } = useI18n();
 
-  // Sort by pantry match ratio descending, then by cost ascending
   const sorted = [...recipes].sort((a, b) => {
     const matchA = a.ingredients.filter((i) => pantry.includes(i)).length / a.ingredients.length;
     const matchB = b.ingredients.filter((i) => pantry.includes(i)).length / b.ingredients.length;

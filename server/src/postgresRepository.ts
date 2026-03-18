@@ -1,0 +1,245 @@
+import type { Pool } from "pg";
+import type { AppRepository, SeedSnapshot, SessionRecord, UserRecord } from "./repository";
+
+export function createPostgresRepository(pool: Pool): AppRepository {
+  return {
+    async createUser(email, passwordHash) {
+      try {
+        const result = await pool.query<{ id: string; email: string }>(
+          `
+            insert into users (email, password_hash)
+            values ($1, $2)
+            returning id::text as id, email::text as email
+          `,
+          [email.trim().toLowerCase(), passwordHash],
+        );
+
+        return result.rows[0];
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          throw new Error("email_taken");
+        }
+
+        throw error;
+      }
+    },
+
+    async findUserByEmail(email) {
+      const result = await pool.query<UserRecord>(
+        `
+          select id::text as id, email::text as email, password_hash as "passwordHash"
+          from users
+          where email = $1
+        `,
+        [email.trim().toLowerCase()],
+      );
+
+      return result.rows[0] ?? null;
+    },
+
+    async findUserById(id) {
+      const result = await pool.query<{ id: string; email: string }>(
+        `
+          select id::text as id, email::text as email
+          from users
+          where id = $1
+        `,
+        [id],
+      );
+
+      return result.rows[0] ?? null;
+    },
+
+    async createSession(session) {
+      await pool.query(
+        `
+          insert into sessions (id, user_id, token_hash, expires_at)
+          values ($1, $2, $3, $4)
+        `,
+        [session.id, session.userId, session.tokenHash, session.expiresAt],
+      );
+    },
+
+    async findSession(tokenHash) {
+      const result = await pool.query<SessionRecord>(
+        `
+          select
+            id::text as id,
+            user_id::text as "userId",
+            token_hash as "tokenHash",
+            expires_at::text as "expiresAt"
+          from sessions
+          where token_hash = $1
+        `,
+        [tokenHash],
+      );
+
+      return result.rows[0] ?? null;
+    },
+
+    async deleteSession(tokenHash) {
+      await pool.query("delete from sessions where token_hash = $1", [tokenHash]);
+    },
+
+    async getPantry(userId) {
+      const result = await pool.query<{ name: string }>(
+        `
+          select name
+          from pantry_items
+          where user_id = $1
+          order by added_at asc, name asc
+        `,
+        [userId],
+      );
+
+      return result.rows.map((row) => row.name);
+    },
+
+    async addPantryItem(userId, name) {
+      await pool.query(
+        `
+          insert into pantry_items (user_id, name)
+          values ($1, $2)
+          on conflict (user_id, name) do nothing
+        `,
+        [userId, name],
+      );
+
+      return this.getPantry(userId);
+    },
+
+    async removePantryItem(userId, name) {
+      await pool.query(
+        `
+          delete from pantry_items
+          where user_id = $1 and name = $2
+        `,
+        [userId, name],
+      );
+
+      return this.getPantry(userId);
+    },
+
+    async getSeedSnapshot() {
+      const [ingredients, foodItems, disruptions, recipes, communityRecipes] = await Promise.all([
+        pool.query<{ name: string }>(
+          `
+            select name
+            from ingredients_catalog
+            order by sort_order asc, name asc
+          `,
+        ),
+        pool.query<{
+          id: string;
+          name: SeedSnapshot["foodItems"][number]["name"];
+          category: string;
+          current_price: string;
+          previous_price: string;
+          unit: string;
+          region: string;
+          trend: number[];
+          national_avg: string;
+        }>(
+          `
+            select id, name, category, current_price, previous_price, unit, region, trend, national_avg
+            from food_items
+            order by id asc
+          `,
+        ),
+        pool.query<{
+          id: string;
+          item: SeedSnapshot["disruptions"][number]["item"];
+          region: string;
+          severity: "high" | "medium" | "low";
+          description: SeedSnapshot["disruptions"][number]["description"];
+          date: string;
+        }>(
+          `
+            select id, item, region, severity, description, date::text as date
+            from disruptions
+            order by date desc, id asc
+          `,
+        ),
+        pool.query<{
+          id: string;
+          name: SeedSnapshot["recipes"][number]["name"];
+          ingredients: string[];
+          prep_time: number;
+          estimated_cost: string;
+          calories: number;
+          tags: string[];
+          steps: SeedSnapshot["recipes"][number]["steps"];
+        }>(
+          `
+            select id, name, ingredients, prep_time, estimated_cost, calories, tags, steps
+            from recipes
+            order by id asc
+          `,
+        ),
+        pool.query<{
+          id: string;
+          title: SeedSnapshot["communityRecipes"][number]["title"];
+          author: string;
+          rating: string;
+          comments: number;
+        }>(
+          `
+            select id, title, author, rating, comments
+            from community_recipes
+            order by id asc
+          `,
+        ),
+      ]);
+
+      return {
+        commonIngredients: ingredients.rows.map((row) => row.name),
+        foodItems: foodItems.rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          category: row.category,
+          currentPrice: Number(row.current_price),
+          previousPrice: Number(row.previous_price),
+          unit: row.unit,
+          region: row.region,
+          trend: row.trend.map(Number),
+          nationalAvg: Number(row.national_avg),
+        })),
+        disruptions: disruptions.rows.map((row) => ({
+          id: row.id,
+          item: row.item,
+          region: row.region,
+          severity: row.severity,
+          description: row.description,
+          date: row.date,
+        })),
+        recipes: recipes.rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          ingredients: row.ingredients,
+          prepTime: row.prep_time,
+          estimatedCost: Number(row.estimated_cost),
+          calories: row.calories,
+          tags: row.tags,
+          steps: row.steps,
+        })),
+        communityRecipes: communityRecipes.rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          author: row.author,
+          rating: Number(row.rating),
+          comments: row.comments,
+        })),
+      };
+    },
+  };
+}
+
+function isUniqueViolation(error: unknown) {
+  return Boolean(
+    error &&
+      typeof error === "object" &&
+      "code" in error &&
+      typeof (error as { code?: unknown }).code === "string" &&
+      (error as { code: string }).code === "23505",
+  );
+}

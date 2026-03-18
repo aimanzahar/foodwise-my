@@ -1,5 +1,5 @@
 import { useI18n } from "@/lib/i18n";
-import { foodItems, disruptions } from "@/lib/data";
+import type { Disruption, FoodItem } from "@/lib/contracts";
 import { PriceCard } from "./PriceCard";
 import { PriceAlertCard } from "./PriceAlertCard";
 import { motion } from "framer-motion";
@@ -11,12 +11,16 @@ const fadeIn = {
   transition: { duration: 0.15, ease: ease as unknown as [number, number, number, number] },
 };
 
-export function DashboardView() {
+interface DashboardViewProps {
+  foodItems: FoodItem[];
+  disruptions: Disruption[];
+}
+
+export function DashboardView({ foodItems, disruptions }: DashboardViewProps) {
   const { t } = useI18n();
 
   return (
     <div className="space-y-5">
-      {/* Alerts */}
       <section aria-live="polite">
         <h2 className="text-sm font-bold text-foreground mb-2">{t("supplyDisruptions")}</h2>
         <div className="space-y-2">
@@ -28,7 +32,6 @@ export function DashboardView() {
         </div>
       </section>
 
-      {/* Essential prices */}
       <section>
         <h2 className="text-sm font-bold text-foreground mb-2">{t("essentialPrices")}</h2>
         <div className="grid grid-cols-2 gap-2">

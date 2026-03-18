@@ -1,13 +1,12 @@
 import { useI18n } from "@/lib/i18n";
+import type { CommunityRecipe } from "@/lib/contracts";
 import { Users, MessageSquare, Star } from "lucide-react";
 
-const communityRecipes = [
-  { id: "c1", title: { bm: "Sambal Telur Paling Jimat", en: "Budget Egg Sambal" }, author: "Puan Siti", rating: 4.5, comments: 12 },
-  { id: "c2", title: { bm: "Mi Goreng Ala Mamak", en: "Mamak Style Fried Noodles" }, author: "Hafiz_KL", rating: 4.8, comments: 28 },
-  { id: "c3", title: { bm: "Sup Tulang Mudah", en: "Easy Bone Soup" }, author: "Kak Anis", rating: 4.2, comments: 7 },
-];
+interface CommunityViewProps {
+  communityRecipes: CommunityRecipe[];
+}
 
-export function CommunityView() {
+export function CommunityView({ communityRecipes }: CommunityViewProps) {
   const { lang, t } = useI18n();
 
   return (

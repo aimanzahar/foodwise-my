@@ -1,15 +1,36 @@
 services:
-  app:
-    image: node:20-alpine
-    working_dir: /app
-    ports:
-      - "8180:8080"
-    env_file:
-      - .env
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     environment:
-      HOST: 0.0.0.0
-      CHOKIDAR_USEPOLLING: "true"
-    volumes:
-      - ./:/app
-      - /app/node_modules
-    command: sh -c "npm install --legacy-peer-deps && npm run dev -- --host 0.0.0.0 --port 8080"
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      API_PORT: "3001"
+    expose:
+      - "3001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/api/auth/session').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8180}:80"
+    restart: unless-stopped
