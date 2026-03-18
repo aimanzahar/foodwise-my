@@ -31,10 +31,14 @@ export function createSessionRecord(userId: string, sessionSecret: string): {
   };
 }
 
+function getCookieSameSite(isProduction: boolean): CookieOptions["sameSite"] {
+  return isProduction ? "none" : "lax";
+}
+
 export function getSessionCookieOptions(expiresAt: string, isProduction: boolean): CookieOptions {
   return {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: getCookieSameSite(isProduction),
     secure: isProduction,
     path: "/",
     expires: new Date(expiresAt),
@@ -44,7 +48,7 @@ export function getSessionCookieOptions(expiresAt: string, isProduction: boolean
 export function getExpiredCookieOptions(isProduction: boolean): CookieOptions {
   return {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: getCookieSameSite(isProduction),
     secure: isProduction,
     path: "/",
     expires: new Date(0),
