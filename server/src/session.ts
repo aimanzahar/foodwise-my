@@ -39,7 +39,7 @@ export function getSessionCookieOptions(expiresAt: string, secureCookie: boolean
   return {
     httpOnly: true,
     sameSite: getCookieSameSite(secureCookie),
-    secure: secureCookie,
+    ...(secureCookie ? { secure: true } : {}),
     path: "/",
     expires: new Date(expiresAt),
   };
@@ -49,7 +49,7 @@ export function getExpiredCookieOptions(secureCookie: boolean): CookieOptions {
   return {
     httpOnly: true,
     sameSite: getCookieSameSite(secureCookie),
-    secure: secureCookie,
+    ...(secureCookie ? { secure: true } : {}),
     path: "/",
     expires: new Date(0),
   };
