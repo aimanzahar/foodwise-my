@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+.env.server
+.env.server.local
 .kilocode
 
 # Editor directories and files

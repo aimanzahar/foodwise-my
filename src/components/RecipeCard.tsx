@@ -1,5 +1,5 @@
 import { useI18n } from "@/lib/i18n";
-import type { Recipe } from "@/lib/data";
+import type { Recipe } from "@/lib/contracts";
 import { Clock, Flame } from "lucide-react";
 
 interface RecipeCardProps {
@@ -23,7 +23,6 @@ export function RecipeCard({ recipe, pantry }: RecipeCardProps) {
         </span>
       </div>
 
-      {/* Match bar */}
       <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
         <div
           className="h-full rounded-full bg-primary transition-all duration-300"
@@ -51,7 +50,6 @@ export function RecipeCard({ recipe, pantry }: RecipeCardProps) {
         </p>
       )}
 
-      {/* Tags */}
       <div className="flex gap-1.5 mt-2">
         {recipe.tags.map((tag) => (
           <span key={tag} className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">

@@ -1,57 +1,52 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./useAuth";
+import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { apiRequest } from "@/lib/api";
+import type { AppBootstrap } from "@/lib/contracts";
+import { bootstrapQueryKey, useBootstrap } from "./useBootstrap";
 
 export function usePantry() {
-  const { user } = useAuth();
-  const [pantry, setPantryState] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Fetch pantry from DB
-  useEffect(() => {
-    if (!user) {
-      setPantryState([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetchPantry = async () => {
-      const { data, error } = await supabase
-        .from("pantry_items")
-        .select("name")
-        .order("added_at", { ascending: true });
-
-      if (!error && data) {
-        setPantryState(data.map((d) => d.name));
-      }
-      setLoading(false);
-    };
-
-    fetchPantry();
-  }, [user]);
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useBootstrap();
+  const pantry = data?.pantry ?? [];
 
   const toggleItem = useCallback(
     async (item: string) => {
-      if (!user) return;
+      if (!data) {
+        return;
+      }
 
-      if (pantry.includes(item)) {
-        // Remove
-        setPantryState((prev) => prev.filter((i) => i !== item));
-        await supabase
-          .from("pantry_items")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("name", item);
-      } else {
-        // Add
-        setPantryState((prev) => [...prev, item]);
-        await supabase
-          .from("pantry_items")
-          .insert({ user_id: user.id, name: item });
+      const previous = data;
+      const nextPantry = pantry.includes(item)
+        ? pantry.filter((entry) => entry !== item)
+        : [...pantry, item];
+
+      queryClient.setQueryData<AppBootstrap>(bootstrapQueryKey, {
+        ...data,
+        pantry: nextPantry,
+      });
+
+      try {
+        const response = pantry.includes(item)
+          ? await apiRequest<{ pantry: string[] }>(`/api/pantry/items/${encodeURIComponent(item)}`, {
+              method: "DELETE",
+            })
+          : await apiRequest<{ pantry: string[] }>("/api/pantry/items", {
+              method: "POST",
+              body: JSON.stringify({ name: item }),
+            });
+
+        queryClient.setQueryData<AppBootstrap>(bootstrapQueryKey, {
+          ...previous,
+          pantry: response.pantry,
+        });
+      } catch (error) {
+        queryClient.setQueryData<AppBootstrap>(bootstrapQueryKey, previous);
+        toast.error(error instanceof Error ? error.message : "Unable to update pantry.");
       }
     },
-    [user, pantry]
+    [data, pantry, queryClient],
   );
 
-  return { pantry, toggleItem, loading };
+  return { pantry, toggleItem, loading: isLoading };
 }
