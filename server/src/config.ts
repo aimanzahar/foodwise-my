@@ -12,6 +12,10 @@ const serverConfigSchema = databaseConfigSchema.extend({
   SESSION_SECRET: z.string().min(16),
   API_PORT: z.coerce.number().int().positive().default(3001),
   APP_ORIGIN: z.string().url().optional(),
+  COOKIE_SECURE: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => v === "true"),
 });
 
 export function loadDatabaseConfig() {

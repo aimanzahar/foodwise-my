@@ -6,10 +6,11 @@ import { createPostgresRepository } from "./postgresRepository";
 const config = loadServerConfig();
 const pool = createPool(config.DATABASE_URL);
 const repository = createPostgresRepository(pool);
+const isProduction = process.env.NODE_ENV === "production";
 const app = createApp({
   repository,
   sessionSecret: config.SESSION_SECRET,
-  isProduction: process.env.NODE_ENV === "production",
+  secureCookie: config.COOKIE_SECURE ?? isProduction,
 });
 
 const server = app.listen(config.API_PORT, () => {

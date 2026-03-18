@@ -8,6 +8,7 @@ services:
     environment:
       NODE_ENV: production
       API_PORT: "3001"
+      COOKIE_SECURE: "false"
     expose:
       - "3001"
     healthcheck:

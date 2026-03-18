@@ -12,7 +12,7 @@ describe("server API", () => {
     app = createApp({
       repository: createInMemoryRepository(),
       sessionSecret: "test-session-secret",
-      isProduction: false,
+      secureCookie: false,
     });
   });
 

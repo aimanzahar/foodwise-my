@@ -29,10 +29,10 @@ const pantryItemSchema = z.object({
 interface CreateAppOptions {
   repository: AppRepository;
   sessionSecret: string;
-  isProduction: boolean;
+  secureCookie: boolean;
 }
 
-export function createApp({ repository, sessionSecret, isProduction }: CreateAppOptions) {
+export function createApp({ repository, sessionSecret, secureCookie }: CreateAppOptions) {
   const app = express();
   const cookieName = getSessionCookieName();
 
@@ -54,7 +54,7 @@ export function createApp({ repository, sessionSecret, isProduction }: CreateApp
       if (session) {
         await repository.deleteSession(sessionTokenHash);
       }
-      res.clearCookie(cookieName, getExpiredCookieOptions(isProduction));
+      res.clearCookie(cookieName, getExpiredCookieOptions(secureCookie));
       req.authUser = null;
       return next();
     }
@@ -81,7 +81,7 @@ export function createApp({ repository, sessionSecret, isProduction }: CreateApp
       const user = await repository.createUser(email, passwordHash);
       const { session, token } = createSessionRecord(user.id, sessionSecret);
       await repository.createSession(session);
-      res.cookie(cookieName, token, getSessionCookieOptions(session.expiresAt, isProduction));
+      res.cookie(cookieName, token, getSessionCookieOptions(session.expiresAt, secureCookie));
       req.authUser = user;
       req.sessionTokenHash = session.tokenHash;
       return res.status(201).json({ user });
@@ -107,7 +107,7 @@ export function createApp({ repository, sessionSecret, isProduction }: CreateApp
 
     const { session, token } = createSessionRecord(userRecord.id, sessionSecret);
     await repository.createSession(session);
-    res.cookie(cookieName, token, getSessionCookieOptions(session.expiresAt, isProduction));
+    res.cookie(cookieName, token, getSessionCookieOptions(session.expiresAt, secureCookie));
     req.authUser = { id: userRecord.id, email: userRecord.email };
     req.sessionTokenHash = session.tokenHash;
     return res.status(200).json({ user: { id: userRecord.id, email: userRecord.email } });
@@ -117,7 +117,7 @@ export function createApp({ repository, sessionSecret, isProduction }: CreateApp
     if (req.sessionTokenHash) {
       await repository.deleteSession(req.sessionTokenHash);
     }
-    res.clearCookie(cookieName, getExpiredCookieOptions(isProduction));
+    res.clearCookie(cookieName, getExpiredCookieOptions(secureCookie));
     res.status(204).send();
   });
 

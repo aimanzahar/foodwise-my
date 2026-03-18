@@ -31,25 +31,25 @@ export function createSessionRecord(userId: string, sessionSecret: string): {
   };
 }
 
-function getCookieSameSite(isProduction: boolean): CookieOptions["sameSite"] {
-  return isProduction ? "none" : "lax";
+function getCookieSameSite(secureCookie: boolean): CookieOptions["sameSite"] {
+  return secureCookie ? "none" : "lax";
 }
 
-export function getSessionCookieOptions(expiresAt: string, isProduction: boolean): CookieOptions {
+export function getSessionCookieOptions(expiresAt: string, secureCookie: boolean): CookieOptions {
   return {
     httpOnly: true,
-    sameSite: getCookieSameSite(isProduction),
-    secure: isProduction,
+    sameSite: getCookieSameSite(secureCookie),
+    secure: secureCookie,
     path: "/",
     expires: new Date(expiresAt),
   };
 }
 
-export function getExpiredCookieOptions(isProduction: boolean): CookieOptions {
+export function getExpiredCookieOptions(secureCookie: boolean): CookieOptions {
   return {
     httpOnly: true,
-    sameSite: getCookieSameSite(isProduction),
-    secure: isProduction,
+    sameSite: getCookieSameSite(secureCookie),
+    secure: secureCookie,
     path: "/",
     expires: new Date(0),
   };
