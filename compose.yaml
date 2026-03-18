@@ -3,7 +3,7 @@ services:
     image: node:20-alpine
     working_dir: /app
     ports:
-      - "8080:8080"
+      - "8180:8080"
     env_file:
       - .env
     environment:
