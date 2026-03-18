@@ -82,6 +82,8 @@ export function createApp({ repository, sessionSecret, isProduction }: CreateApp
       const { session, token } = createSessionRecord(user.id, sessionSecret);
       await repository.createSession(session);
       res.cookie(cookieName, token, getSessionCookieOptions(session.expiresAt, isProduction));
+      req.authUser = user;
+      req.sessionTokenHash = session.tokenHash;
       return res.status(201).json({ user });
     } catch (error) {
       if (error instanceof Error && error.message === "email_taken") {
@@ -106,6 +108,8 @@ export function createApp({ repository, sessionSecret, isProduction }: CreateApp
     const { session, token } = createSessionRecord(userRecord.id, sessionSecret);
     await repository.createSession(session);
     res.cookie(cookieName, token, getSessionCookieOptions(session.expiresAt, isProduction));
+    req.authUser = { id: userRecord.id, email: userRecord.email };
+    req.sessionTokenHash = session.tokenHash;
     return res.status(200).json({ user: { id: userRecord.id, email: userRecord.email } });
   });
 
