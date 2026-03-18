@@ -1,5 +1,5 @@
 import { useI18n } from "@/lib/i18n";
-import type { FoodItem } from "@/lib/data";
+import type { FoodItem } from "@/lib/contracts";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 export function PriceCard({ item }: { item: FoodItem }) {
@@ -27,7 +27,6 @@ export function PriceCard({ item }: { item: FoodItem }) {
           {change >= 0 ? "+" : ""}{change.toFixed(1)}%
         </div>
       </div>
-      {/* Mini sparkline */}
       <div className="flex items-end gap-[3px] mt-2 h-6">
         {item.trend.map((val, i) => {
           const max = Math.max(...item.trend);

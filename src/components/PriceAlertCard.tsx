@@ -1,5 +1,5 @@
 import { useI18n } from "@/lib/i18n";
-import type { Disruption } from "@/lib/data";
+import type { Disruption } from "@/lib/contracts";
 
 const severityStyles = {
   high: "bg-destructive",

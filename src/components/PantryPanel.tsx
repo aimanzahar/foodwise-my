@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
-import { commonIngredients } from "@/lib/data";
 import { X, Plus, Search } from "lucide-react";
 
 interface PantryPanelProps {
   pantry: string[];
   toggleItem: (item: string) => void;
+  commonIngredients: string[];
 }
 
-export function PantryPanel({ pantry, toggleItem }: PantryPanelProps) {
+export function PantryPanel({ pantry, toggleItem, commonIngredients }: PantryPanelProps) {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
 
@@ -24,7 +24,6 @@ export function PantryPanel({ pantry, toggleItem }: PantryPanelProps) {
         <p className="text-xs text-muted-foreground mt-0.5">{t("quickAdd")} — {t("commonStaples")}</p>
       </div>
 
-      {/* Active pantry items */}
       <div className="flex flex-wrap gap-2 min-h-[40px]" aria-live="polite">
         <AnimatePresence mode="popLayout">
           {pantry.map((item) => (
@@ -48,7 +47,6 @@ export function PantryPanel({ pantry, toggleItem }: PantryPanelProps) {
         )}
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <input
@@ -60,7 +58,6 @@ export function PantryPanel({ pantry, toggleItem }: PantryPanelProps) {
         />
       </div>
 
-      {/* Ingredient grid */}
       <div className="flex flex-wrap gap-2">
         {filtered.map((item) => {
           const isActive = pantry.includes(item);
