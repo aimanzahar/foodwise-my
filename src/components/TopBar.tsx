@@ -1,8 +1,10 @@
 import { useI18n } from "@/lib/i18n";
-import { Shield } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Shield, LogOut } from "lucide-react";
 
 export function TopBar() {
   const { lang, toggleLang } = useI18n();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-sm card-shadow">
@@ -14,12 +16,23 @@ export function TopBar() {
             <span className="text-muted-foreground font-medium"> × FoodSecure</span>
           </span>
         </div>
-        <button
-          onClick={toggleLang}
-          className="text-xs font-semibold px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-        >
-          {lang === "bm" ? "EN" : "BM"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleLang}
+            className="text-xs font-semibold px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          >
+            {lang === "bm" ? "EN" : "BM"}
+          </button>
+          {user && (
+            <button
+              onClick={signOut}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              title="Log keluar"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );
