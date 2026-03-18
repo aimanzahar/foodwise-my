@@ -21,7 +21,7 @@ export function DashboardView() {
         <h2 className="text-sm font-bold text-foreground mb-2">{t("supplyDisruptions")}</h2>
         <div className="space-y-2">
           {disruptions.map((d, i) => (
-            <motion.div key={d.id} {...fadeIn} transition={{ ...fadeIn.transition, delay: i * 0.05 }}>
+            <motion.div key={d.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: i * 0.05 }}>
               <PriceAlertCard alert={d} />
             </motion.div>
           ))}
