@@ -6,18 +6,12 @@ import { X, Plus, Search } from "lucide-react";
 
 interface PantryPanelProps {
   pantry: string[];
-  setPantry: React.Dispatch<React.SetStateAction<string[]>>;
+  toggleItem: (item: string) => void;
 }
 
-export function PantryPanel({ pantry, setPantry }: PantryPanelProps) {
+export function PantryPanel({ pantry, toggleItem }: PantryPanelProps) {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
-
-  const toggleItem = (item: string) => {
-    setPantry((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
-    );
-  };
 
   const filtered = commonIngredients.filter(
     (ing) => ing.toLowerCase().includes(search.toLowerCase())
