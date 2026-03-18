@@ -4,10 +4,11 @@ import { PriceCard } from "./PriceCard";
 import { PriceAlertCard } from "./PriceAlertCard";
 import { motion } from "framer-motion";
 
+const ease = [0.2, 0, 0, 1] as const;
 const fadeIn = {
   initial: { opacity: 0, y: 4 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.15, ease: [0.2, 0, 0, 1] },
+  transition: { duration: 0.15, ease: ease as unknown as [number, number, number, number] },
 };
 
 export function DashboardView() {
