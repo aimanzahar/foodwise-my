@@ -13,9 +13,20 @@ const app = createApp({
   secureCookie: config.COOKIE_SECURE ?? isProduction,
 });
 
-const server = app.listen(config.API_PORT, () => {
-  console.log(`API listening on http://127.0.0.1:${config.API_PORT}`);
-});
+const host = isProduction ? "0.0.0.0" : undefined;
+
+function startServer() {
+  if (host) {
+    return app.listen(config.API_PORT, host, () => {
+      console.log(`API listening on http://${host}:${config.API_PORT}`);
+    });
+  }
+  return app.listen(config.API_PORT, () => {
+    console.log(`API listening on http://127.0.0.1:${config.API_PORT}`);
+  });
+}
+
+const server = startServer();
 
 async function shutdown() {
   server.close(async () => {

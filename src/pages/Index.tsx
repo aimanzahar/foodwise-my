@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,8 +14,15 @@ import { Loader2 } from "lucide-react";
 
 function AppContent() {
   const [tab, setTab] = useState("dashboard");
-  const { data, isLoading } = useBootstrap();
+  const { data, isLoading, isError } = useBootstrap();
   const { pantry, toggleItem, loading: pantryLoading } = usePantry();
+  const { signOut } = useAuth();
+
+  useEffect(() => {
+    if (isError) {
+      signOut();
+    }
+  }, [isError, signOut]);
 
   if (isLoading || pantryLoading || !data) {
     return (

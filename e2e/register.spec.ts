@@ -52,5 +52,6 @@ test("register → lands on dashboard without infinite loading", async ({ page, 
   // After a successful bootstrap the spinner should disappear and
   // we should see the dashboard content (e.g. bottom nav).  Give it a
   // generous timeout in case the data takes a moment to render.
-  await expect(page.getByText("Dashboard")).toBeVisible({ timeout: 15_000 });
+  // The app defaults to Bahasa Malaysia, so look for "Papan Pemuka" (Dashboard).
+  await expect(page.getByText("Papan Pemuka")).toBeVisible({ timeout: 15_000 });
 });
