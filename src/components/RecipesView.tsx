@@ -11,12 +11,23 @@ interface RecipesViewProps {
 export function RecipesView({ pantry, recipes }: RecipesViewProps) {
   const { t } = useI18n();
 
-  const fullMatches = [...recipes]
-    .filter((r) => r.ingredients.every((i) => pantry.includes(i)))
-    .sort((a, b) => a.estimatedCost - b.estimatedCost);
+  const matchingRecipes = [...recipes]
+    .filter((r) => pantry.every((p) => r.ingredients.includes(p)))
+    .map((r) => {
+      const matched = r.ingredients.filter((i) => pantry.includes(i)).length;
+      return { recipe: r, matched, total: r.ingredients.length };
+    })
+    .sort((a, b) => {
+      // Primary: higher match percentage
+      const aPct = a.matched / a.total;
+      const bPct = b.matched / b.total;
+      if (Math.abs(aPct - bPct) > 0.001) return bPct - aPct;
+      // Secondary: lower estimated cost
+      return a.recipe.estimatedCost - b.recipe.estimatedCost;
+    });
 
   const hasAnyIngredient = pantry.length > 0;
-  const hasMatches = fullMatches.length > 0;
+  const hasMatches = matchingRecipes.length > 0;
 
   return (
     <div className="space-y-4">
@@ -30,13 +41,13 @@ export function RecipesView({ pantry, recipes }: RecipesViewProps) {
         )}
         {hasMatches && (
           <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
-            {fullMatches.length} {t("recipes").toLowerCase()} · {t("estCost")}: RM{fullMatches[0]?.estimatedCost.toFixed(2)} – RM{fullMatches[fullMatches.length - 1]?.estimatedCost.toFixed(2)}
+            {matchingRecipes.length} {t("recipes").toLowerCase()} · {t("estCost")}: RM{matchingRecipes[0]?.recipe.estimatedCost.toFixed(2)} – RM{matchingRecipes[matchingRecipes.length - 1]?.recipe.estimatedCost.toFixed(2)}
           </p>
         )}
       </div>
 
       <div className="space-y-2">
-        {fullMatches.map((recipe, i) => (
+        {matchingRecipes.map(({ recipe }, i) => (
           <motion.div
             key={recipe.id}
             initial={{ opacity: 0, y: 4 }}
