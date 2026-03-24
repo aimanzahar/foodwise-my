@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import type { Recipe } from "@/lib/contracts";
 import { RecipeCard } from "./RecipeCard";
+import { RecipeDetailModal } from "./RecipeDetailModal";
 import { motion } from "framer-motion";
 
 interface RecipesViewProps {
@@ -10,6 +12,7 @@ interface RecipesViewProps {
 
 export function RecipesView({ pantry, recipes }: RecipesViewProps) {
   const { t } = useI18n();
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const matchingRecipes = [...recipes]
     .filter((r) => pantry.every((p) => r.ingredients.includes(p)))
@@ -54,10 +57,17 @@ export function RecipesView({ pantry, recipes }: RecipesViewProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.15, delay: i * 0.04, ease: [0.2, 0, 0, 1] }}
           >
-            <RecipeCard recipe={recipe} pantry={pantry} />
+            <RecipeCard recipe={recipe} pantry={pantry} onClick={() => setSelectedRecipe(recipe)} />
           </motion.div>
         ))}
       </div>
+
+      <RecipeDetailModal
+        recipe={selectedRecipe}
+        open={selectedRecipe !== null}
+        onOpenChange={(open) => !open && setSelectedRecipe(null)}
+        pantry={pantry}
+      />
     </div>
   );
 }

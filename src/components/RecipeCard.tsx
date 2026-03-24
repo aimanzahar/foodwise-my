@@ -5,9 +5,10 @@ import { Clock, Flame } from "lucide-react";
 interface RecipeCardProps {
   recipe: Recipe;
   pantry: string[];
+  onClick?: () => void;
 }
 
-export function RecipeCard({ recipe, pantry }: RecipeCardProps) {
+export function RecipeCard({ recipe, pantry, onClick }: RecipeCardProps) {
   const { lang, t } = useI18n();
   const matched = recipe.ingredients.filter((i) => pantry.includes(i)).length;
   const total = recipe.ingredients.length;
@@ -15,7 +16,18 @@ export function RecipeCard({ recipe, pantry }: RecipeCardProps) {
   const matchPercent = total > 0 ? (matched / total) * 100 : 0;
 
   return (
-    <div className="rounded-xl bg-card p-4 card-shadow transition-shadow hover:card-shadow-hover">
+    <div
+      className="rounded-xl bg-card p-4 card-shadow transition-all duration-200 hover:card-shadow-hover hover:scale-[1.02] cursor-pointer"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
+    >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-bold text-foreground leading-snug">{recipe.name[lang]}</h3>
         <span className="shrink-0 text-[11px] font-semibold tabular-nums text-primary bg-primary/10 px-1.5 py-0.5 rounded">
