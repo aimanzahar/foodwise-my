@@ -67,7 +67,10 @@ create table if not exists community_recipes (
   title jsonb not null,
   author text not null,
   rating numeric(3, 2) not null,
-  comments integer not null
+  comments integer not null,
+  description jsonb not null default '{"bm":"","en":""}',
+  ingredients text[] not null default '{}',
+  tips jsonb not null default '{"bm":"","en":""}'
 );
 
 create index if not exists idx_sessions_user_id on sessions(user_id);

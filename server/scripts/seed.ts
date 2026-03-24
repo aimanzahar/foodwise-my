@@ -135,15 +135,18 @@ try {
   for (const recipe of communityRecipesSeed) {
     await pool.query(
       `
-        insert into community_recipes (id, title, author, rating, comments)
-        values ($1, $2, $3, $4, $5)
+        insert into community_recipes (id, title, author, rating, comments, description, ingredients, tips)
+        values ($1, $2, $3, $4, $5, $6, $7, $8)
         on conflict (id) do update
         set title = excluded.title,
             author = excluded.author,
             rating = excluded.rating,
-            comments = excluded.comments
+            comments = excluded.comments,
+            description = excluded.description,
+            ingredients = excluded.ingredients,
+            tips = excluded.tips
       `,
-      [recipe.id, recipe.title, recipe.author, recipe.rating, recipe.comments],
+      [recipe.id, recipe.title, recipe.author, recipe.rating, recipe.comments, recipe.description, recipe.ingredients, recipe.tips],
     );
   }
 

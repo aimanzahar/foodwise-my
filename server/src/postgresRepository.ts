@@ -182,9 +182,12 @@ export function createPostgresRepository(pool: Pool): AppRepository {
           author: string;
           rating: string;
           comments: number;
+          description: SeedSnapshot["communityRecipes"][number]["description"];
+          ingredients: string[];
+          tips: SeedSnapshot["communityRecipes"][number]["tips"];
         }>(
           `
-            select id, title, author, rating, comments
+            select id, title, author, rating, comments, description, ingredients, tips
             from community_recipes
             order by id asc
           `,
@@ -228,6 +231,9 @@ export function createPostgresRepository(pool: Pool): AppRepository {
           author: row.author,
           rating: Number(row.rating),
           comments: row.comments,
+          description: row.description,
+          ingredients: row.ingredients,
+          tips: row.tips,
         })),
       };
     },

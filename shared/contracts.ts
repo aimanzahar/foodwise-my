@@ -49,6 +49,9 @@ export interface CommunityRecipe {
   author: string;
   rating: number;
   comments: number;
+  description: LocalizedText;
+  ingredients: string[];
+  tips: LocalizedText;
 }
 
 export interface AppBootstrap {

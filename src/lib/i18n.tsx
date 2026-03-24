@@ -38,6 +38,10 @@ const translations = {
   searchIngredient: { bm: "Cari bahan...", en: "Search ingredient..." },
   noRecipesFound: { bm: "Tiada resipi dijumpai", en: "No recipes found" },
   addMoreIngredients: { bm: "Tambah lagi bahan untuk cadangan resipi", en: "Add more ingredients for recipe suggestions" },
+  description: { bm: "Penerangan", en: "Description" },
+  tips: { bm: "Tips", en: "Tips" },
+  rating: { bm: "Penilaian", en: "Rating" },
+  comments: { bm: "Komen", en: "Comments" },
 } as const;
 
 type TranslationKey = keyof typeof translations;

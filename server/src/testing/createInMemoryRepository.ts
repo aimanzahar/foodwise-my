@@ -29,7 +29,7 @@ export function createInMemoryRepository(): AppRepository {
       tags: [...recipe.tags],
       steps: { bm: [...recipe.steps.bm], en: [...recipe.steps.en] },
     })),
-    communityRecipes: communityRecipesSeed.map((recipe) => ({ ...recipe, title: { ...recipe.title } })),
+    communityRecipes: communityRecipesSeed.map((recipe) => ({ ...recipe, title: { ...recipe.title }, description: { ...recipe.description }, ingredients: [...recipe.ingredients], tips: { ...recipe.tips } })),
   };
 
   return {
