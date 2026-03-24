@@ -1,4 +1,4 @@
-import type { AppUser, CommunityRecipe, Disruption, FoodItem, Recipe } from "../../shared/contracts";
+import type { AppUser, CommunityRecipe, Disruption, FoodItem, Recipe, RecipeComment } from "../../shared/contracts";
 
 export interface UserRecord extends AppUser {
   passwordHash: string;
@@ -30,4 +30,6 @@ export interface AppRepository {
   addPantryItem(userId: string, name: string): Promise<string[]>;
   removePantryItem(userId: string, name: string): Promise<string[]>;
   getSeedSnapshot(): Promise<SeedSnapshot>;
+  getComments(recipeId: string): Promise<RecipeComment[]>;
+  addComment(recipeId: string, userId: string, author: string, content: string): Promise<RecipeComment[]>;
 }

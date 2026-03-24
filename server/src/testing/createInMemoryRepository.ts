@@ -96,5 +96,20 @@ export function createInMemoryRepository(): AppRepository {
     async getSeedSnapshot() {
       return seedSnapshot;
     },
+
+    async getComments(recipeId) {
+      return [];
+    },
+
+    async addComment(recipeId, userId, author, content) {
+      return [{
+        id: randomUUID(),
+        recipeId,
+        userId,
+        author,
+        content,
+        createdAt: new Date().toISOString(),
+      }];
+    },
   };
 }

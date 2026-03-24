@@ -120,6 +120,63 @@ export function createPostgresRepository(pool: Pool): AppRepository {
       return this.getPantry(userId);
     },
 
+    async getComments(recipeId) {
+      const result = await pool.query<{
+        id: string;
+        recipe_id: string;
+        user_id: string;
+        author: string;
+        content: string;
+        created_at: string;
+      }>(
+        `
+          select id::text as id, recipe_id::text as recipe_id, user_id::text as user_id,
+                 author, content, created_at::text as created_at
+          from recipe_comments
+          where recipe_id = $1
+          order by created_at asc
+        `,
+        [recipeId],
+      );
+
+      return result.rows.map((row) => ({
+        id: row.id,
+        recipeId: row.recipe_id,
+        userId: row.user_id,
+        author: row.author,
+        content: row.content,
+        createdAt: row.created_at,
+      }));
+    },
+
+    async addComment(recipeId, userId, author, content) {
+      const result = await pool.query<{
+        id: string;
+        recipe_id: string;
+        user_id: string;
+        author: string;
+        content: string;
+        created_at: string;
+      }>(
+        `
+          insert into recipe_comments (recipe_id, user_id, author, content)
+          values ($1, $2, $3, $4)
+          returning id::text as id, recipe_id::text as recipe_id, user_id::text as user_id,
+                     author, content, created_at::text as created_at
+        `,
+        [recipeId, userId, author, content],
+      );
+
+      return result.rows.map((row) => ({
+        id: row.id,
+        recipeId: row.recipe_id,
+        userId: row.user_id,
+        author: row.author,
+        content: row.content,
+        createdAt: row.created_at,
+      }));
+    },
+
     async getSeedSnapshot() {
       const [ingredients, foodItems, disruptions, recipes, communityRecipes] = await Promise.all([
         pool.query<{ name: string }>(
@@ -181,15 +238,18 @@ export function createPostgresRepository(pool: Pool): AppRepository {
           title: SeedSnapshot["communityRecipes"][number]["title"];
           author: string;
           rating: string;
-          comments: number;
+          comment_count: string;
           description: SeedSnapshot["communityRecipes"][number]["description"];
           ingredients: string[];
           tips: SeedSnapshot["communityRecipes"][number]["tips"];
         }>(
           `
-            select id, title, author, rating, comments, description, ingredients, tips
-            from community_recipes
-            order by id asc
+            select cr.id, cr.title, cr.author, cr.rating, cr.description, cr.ingredients, cr.tips,
+                   count(rc.id)::text as comment_count
+            from community_recipes cr
+            left join recipe_comments rc on rc.recipe_id = cr.id
+            group by cr.id, cr.title, cr.author, cr.rating, cr.description, cr.ingredients, cr.tips
+            order by cr.id asc
           `,
         ),
       ]);
@@ -230,7 +290,7 @@ export function createPostgresRepository(pool: Pool): AppRepository {
           title: row.title,
           author: row.author,
           rating: Number(row.rating),
-          comments: row.comments,
+          comments: Number(row.comment_count),
           description: row.description,
           ingredients: row.ingredients,
           tips: row.tips,

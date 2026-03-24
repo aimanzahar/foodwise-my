@@ -26,6 +26,10 @@ const pantryItemSchema = z.object({
   name: z.string().trim().min(1).max(100),
 });
 
+const commentSchema = z.object({
+  content: z.string().trim().min(1).max(500),
+});
+
 interface CreateAppOptions {
   repository: AppRepository;
   sessionSecret: string;
@@ -152,6 +156,31 @@ export function createApp({ repository, sessionSecret, secureCookie }: CreateApp
     const pantryName = Array.isArray(req.params.name) ? req.params.name[0] : req.params.name;
     const pantry = await repository.removePantryItem(req.authUser.id, pantryName);
     return res.status(200).json({ pantry });
+  });
+
+  app.get("/api/community-recipes/:id/comments", async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.authUser) {
+      return res.status(401).json({ error: { code: "unauthorized", message: "Authentication is required." } });
+    }
+
+    const recipeId = req.params.id;
+    const comments = await repository.getComments(recipeId);
+    return res.status(200).json({ comments });
+  });
+
+  app.post("/api/community-recipes/:id/comments", async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.authUser) {
+      return res.status(401).json({ error: { code: "unauthorized", message: "Authentication is required." } });
+    }
+
+    const parsed = commentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: { code: "invalid_request", message: "Comment content is required." } });
+    }
+
+    const recipeId = req.params.id;
+    const comments = await repository.addComment(recipeId, req.authUser.id, req.authUser.email, parsed.data.content);
+    return res.status(201).json({ comments });
   });
 
   return app;

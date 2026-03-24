@@ -6,4 +6,5 @@ export type {
   FoodItem,
   LocalizedText,
   Recipe,
+  RecipeComment,
 } from "../../shared/contracts";

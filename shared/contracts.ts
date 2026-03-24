@@ -43,6 +43,15 @@ export interface Recipe {
   };
 }
 
+export interface RecipeComment {
+  id: string;
+  recipeId: string;
+  userId: string;
+  author: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface CommunityRecipe {
   id: string;
   title: LocalizedText;
