@@ -21,16 +21,18 @@ function ingredientId(name: string) {
 try {
   await pool.query("begin");
 
-  for (const [index, name] of commonIngredientsSeed.entries()) {
+  for (const [index, ingredient] of commonIngredientsSeed.entries()) {
     await pool.query(
       `
-        insert into ingredients_catalog (id, name, sort_order)
-        values ($1, $2, $3)
+        insert into ingredients_catalog (id, name, sort_order, category, default_unit)
+        values ($1, $2, $3, $4, $5)
         on conflict (id) do update
         set name = excluded.name,
-            sort_order = excluded.sort_order
+            sort_order = excluded.sort_order,
+            category = excluded.category,
+            default_unit = excluded.default_unit
       `,
-      [ingredientId(name), name, index],
+      [ingredientId(ingredient.name), ingredient.name, index, ingredient.category, ingredient.defaultUnit],
     );
   }
 
@@ -46,9 +48,10 @@ try {
           unit,
           region,
           trend,
-          national_avg
+          national_avg,
+          rating
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         on conflict (id) do update
         set name = excluded.name,
             category = excluded.category,
@@ -57,7 +60,8 @@ try {
             unit = excluded.unit,
             region = excluded.region,
             trend = excluded.trend,
-            national_avg = excluded.national_avg
+            national_avg = excluded.national_avg,
+            rating = excluded.rating
       `,
       [
         item.id,
@@ -69,6 +73,7 @@ try {
         item.region,
         item.trend,
         item.nationalAvg,
+        item.rating ?? null,
       ],
     );
   }

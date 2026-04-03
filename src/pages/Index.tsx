@@ -6,16 +6,15 @@ import { usePantry } from "@/hooks/usePantry";
 import { useBootstrap } from "@/hooks/useBootstrap";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
-import { DashboardView } from "@/components/DashboardView";
-import { PantryPanel } from "@/components/PantryPanel";
-import { RecipesView } from "@/components/RecipesView";
-import { CommunityView } from "@/components/CommunityView";
+import { PriceView } from "@/components/PriceView";
+import { PantryRecipeView } from "@/components/PantryRecipeView";
+import { DisruptionView } from "@/components/DisruptionView";
 import { Loader2 } from "lucide-react";
 
 function AppContent() {
-  const [tab, setTab] = useState("dashboard");
+  const [tab, setTab] = useState("harga");
   const { data, isLoading, isError } = useBootstrap();
-  const { pantry, toggleItem, loading: pantryLoading } = usePantry();
+  const { pantry, addItem, removeItem, updateItem, loading: pantryLoading } = usePantry();
   const { signOut } = useAuth();
 
   useEffect(() => {
@@ -36,18 +35,23 @@ function AppContent() {
     <div className="min-h-screen bg-background pb-16">
       <TopBar />
       <main className="max-w-lg mx-auto px-4 py-4">
-        {tab === "dashboard" && (
-          <DashboardView foodItems={data.foodItems} disruptions={data.disruptions} />
+        {tab === "harga" && (
+          <PriceView foodItems={data.foodItems} />
         )}
-        {tab === "pantry" && (
-          <PantryPanel
+        {tab === "pantri" && (
+          <PantryRecipeView
             pantry={pantry}
-            toggleItem={toggleItem}
             commonIngredients={data.commonIngredients}
+            recipes={data.recipes}
+            communityRecipes={data.communityRecipes}
+            onAddPantryItem={addItem}
+            onRemovePantryItem={removeItem}
+            onUpdatePantryItem={updateItem}
           />
         )}
-        {tab === "recipes" && <RecipesView pantry={pantry} recipes={data.recipes} />}
-        {tab === "community" && <CommunityView communityRecipes={data.communityRecipes} />}
+        {tab === "gangguan" && (
+          <DisruptionView disruptions={data.disruptions} />
+        )}
       </main>
       <BottomNav active={tab} onNavigate={setTab} />
     </div>

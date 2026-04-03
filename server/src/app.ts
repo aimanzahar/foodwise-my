@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
-import type { AppBootstrap, AppUser } from "../../shared/contracts";
+import type { AppBootstrap, AppUser, PantryItem } from "../../shared/contracts";
 import {
   createSessionRecord,
   getExpiredCookieOptions,
@@ -24,6 +24,14 @@ const credentialsSchema = z.object({
 
 const pantryItemSchema = z.object({
   name: z.string().trim().min(1).max(100),
+  category: z.string().trim().max(50).default(""),
+  quantity: z.number().min(0).default(1),
+  unit: z.string().trim().max(20).default(""),
+});
+
+const pantryUpdateSchema = z.object({
+  quantity: z.number().min(0).optional(),
+  unit: z.string().trim().max(20).optional(),
 });
 
 const commentSchema = z.object({
@@ -144,7 +152,27 @@ export function createApp({ repository, sessionSecret, secureCookie }: CreateApp
       return res.status(400).json({ error: { code: "invalid_request", message: "Invalid pantry item." } });
     }
 
-    const pantry = await repository.addPantryItem(req.authUser.id, parsed.data.name);
+    const pantry = await repository.addPantryItem(req.authUser.id, {
+      name: parsed.data.name,
+      category: parsed.data.category,
+      quantity: parsed.data.quantity,
+      unit: parsed.data.unit,
+    });
+    return res.status(200).json({ pantry });
+  });
+
+  app.patch("/api/pantry/items/:name", async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.authUser) {
+      return res.status(401).json({ error: { code: "unauthorized", message: "Authentication is required." } });
+    }
+
+    const parsed = pantryUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: { code: "invalid_request", message: "Invalid update payload." } });
+    }
+
+    const pantryName = Array.isArray(req.params.name) ? req.params.name[0] : req.params.name;
+    const pantry = await repository.updatePantryItem(req.authUser.id, pantryName, parsed.data);
     return res.status(200).json({ pantry });
   });
 

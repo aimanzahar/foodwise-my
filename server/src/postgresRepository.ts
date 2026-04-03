@@ -1,4 +1,5 @@
 import type { Pool } from "pg";
+import type { PantryItem } from "../../shared/contracts";
 import type { AppRepository, SeedSnapshot, SessionRecord, UserRecord } from "./repository";
 
 export function createPostgresRepository(pool: Pool): AppRepository {
@@ -82,9 +83,9 @@ export function createPostgresRepository(pool: Pool): AppRepository {
     },
 
     async getPantry(userId) {
-      const result = await pool.query<{ name: string }>(
+      const result = await pool.query<{ name: string; category: string; quantity: string; unit: string }>(
         `
-          select name
+          select name, category, quantity, unit
           from pantry_items
           where user_id = $1
           order by added_at asc, name asc
@@ -92,17 +93,25 @@ export function createPostgresRepository(pool: Pool): AppRepository {
         [userId],
       );
 
-      return result.rows.map((row) => row.name);
+      return result.rows.map((row) => ({
+        name: row.name,
+        category: row.category,
+        quantity: Number(row.quantity),
+        unit: row.unit,
+      }));
     },
 
-    async addPantryItem(userId, name) {
+    async addPantryItem(userId, item) {
       await pool.query(
         `
-          insert into pantry_items (user_id, name)
-          values ($1, $2)
-          on conflict (user_id, name) do nothing
+          insert into pantry_items (user_id, name, category, quantity, unit)
+          values ($1, $2, $3, $4, $5)
+          on conflict (user_id, name) do update set
+            category = excluded.category,
+            quantity = pantry_items.quantity + excluded.quantity,
+            unit = excluded.unit
         `,
-        [userId, name],
+        [userId, item.name, item.category, item.quantity, item.unit],
       );
 
       return this.getPantry(userId);
@@ -116,6 +125,32 @@ export function createPostgresRepository(pool: Pool): AppRepository {
         `,
         [userId, name],
       );
+
+      return this.getPantry(userId);
+    },
+
+    async updatePantryItem(userId, name, updates) {
+      const setClauses: string[] = [];
+      const values: unknown[] = [userId, name];
+      let paramIndex = 3;
+
+      if (updates.quantity !== undefined) {
+        setClauses.push(`quantity = $${paramIndex}`);
+        values.push(updates.quantity);
+        paramIndex++;
+      }
+      if (updates.unit !== undefined) {
+        setClauses.push(`unit = $${paramIndex}`);
+        values.push(updates.unit);
+        paramIndex++;
+      }
+
+      if (setClauses.length > 0) {
+        await pool.query(
+          `update pantry_items set ${setClauses.join(", ")} where user_id = $1 and name = $2`,
+          values,
+        );
+      }
 
       return this.getPantry(userId);
     },
@@ -179,9 +214,9 @@ export function createPostgresRepository(pool: Pool): AppRepository {
 
     async getSeedSnapshot() {
       const [ingredients, foodItems, disruptions, recipes, communityRecipes] = await Promise.all([
-        pool.query<{ name: string }>(
+        pool.query<{ name: string; category: string; default_unit: string }>(
           `
-            select name
+            select name, category, default_unit
             from ingredients_catalog
             order by sort_order asc, name asc
           `,
@@ -196,9 +231,10 @@ export function createPostgresRepository(pool: Pool): AppRepository {
           region: string;
           trend: number[];
           national_avg: string;
+          rating: string | null;
         }>(
           `
-            select id, name, category, current_price, previous_price, unit, region, trend, national_avg
+            select id, name, category, current_price, previous_price, unit, region, trend, national_avg, rating
             from food_items
             order by id asc
           `,
@@ -255,7 +291,11 @@ export function createPostgresRepository(pool: Pool): AppRepository {
       ]);
 
       return {
-        commonIngredients: ingredients.rows.map((row) => row.name),
+        commonIngredients: ingredients.rows.map((row) => ({
+          name: row.name,
+          category: row.category,
+          defaultUnit: row.default_unit,
+        })),
         foodItems: foodItems.rows.map((row) => ({
           id: row.id,
           name: row.name,
@@ -266,6 +306,7 @@ export function createPostgresRepository(pool: Pool): AppRepository {
           region: row.region,
           trend: row.trend.map(Number),
           nationalAvg: Number(row.national_avg),
+          rating: (row.rating as "A" | "B" | "C") ?? null,
         })),
         disruptions: disruptions.rows.map((row) => ({
           id: row.id,

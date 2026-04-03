@@ -1,4 +1,4 @@
-import type { AppUser, CommunityRecipe, Disruption, FoodItem, Recipe, RecipeComment } from "../../shared/contracts";
+import type { AppUser, CommonIngredient, CommunityRecipe, Disruption, FoodItem, PantryItem, Recipe, RecipeComment } from "../../shared/contracts";
 
 export interface UserRecord extends AppUser {
   passwordHash: string;
@@ -12,7 +12,7 @@ export interface SessionRecord {
 }
 
 export interface SeedSnapshot {
-  commonIngredients: string[];
+  commonIngredients: CommonIngredient[];
   foodItems: FoodItem[];
   disruptions: Disruption[];
   recipes: Recipe[];
@@ -26,9 +26,10 @@ export interface AppRepository {
   createSession(session: SessionRecord): Promise<void>;
   findSession(tokenHash: string): Promise<SessionRecord | null>;
   deleteSession(tokenHash: string): Promise<void>;
-  getPantry(userId: string): Promise<string[]>;
-  addPantryItem(userId: string, name: string): Promise<string[]>;
-  removePantryItem(userId: string, name: string): Promise<string[]>;
+  getPantry(userId: string): Promise<PantryItem[]>;
+  addPantryItem(userId: string, item: PantryItem): Promise<PantryItem[]>;
+  removePantryItem(userId: string, name: string): Promise<PantryItem[]>;
+  updatePantryItem(userId: string, name: string, updates: Partial<Pick<PantryItem, "quantity" | "unit">>): Promise<PantryItem[]>;
   getSeedSnapshot(): Promise<SeedSnapshot>;
   getComments(recipeId: string): Promise<RecipeComment[]>;
   addComment(recipeId: string, userId: string, author: string, content: string): Promise<RecipeComment[]>;

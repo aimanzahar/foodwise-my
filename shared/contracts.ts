@@ -8,6 +8,8 @@ export interface AppUser {
   email: string;
 }
 
+export type PriceRating = "A" | "B" | "C" | null;
+
 export interface FoodItem {
   id: string;
   name: LocalizedText;
@@ -18,6 +20,7 @@ export interface FoodItem {
   region: string;
   trend: number[];
   nationalAvg: number;
+  rating: PriceRating;
 }
 
 export interface Disruption {
@@ -27,6 +30,19 @@ export interface Disruption {
   severity: "high" | "medium" | "low";
   description: LocalizedText;
   date: string;
+}
+
+export interface PantryItem {
+  name: string;
+  category: string;
+  quantity: number;
+  unit: string;
+}
+
+export interface CommonIngredient {
+  name: string;
+  category: string;
+  defaultUnit: string;
 }
 
 export interface Recipe {
@@ -65,8 +81,8 @@ export interface CommunityRecipe {
 
 export interface AppBootstrap {
   user: AppUser;
-  pantry: string[];
-  commonIngredients: string[];
+  pantry: PantryItem[];
+  commonIngredients: CommonIngredient[];
   foodItems: FoodItem[];
   disruptions: Disruption[];
   recipes: Recipe[];

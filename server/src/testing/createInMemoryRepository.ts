@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { PantryItem } from "../../../shared/contracts";
 import {
   commonIngredientsSeed,
   communityRecipesSeed,
@@ -12,10 +13,10 @@ export function createInMemoryRepository(): AppRepository {
   const usersById = new Map<string, UserRecord>();
   const userIdsByEmail = new Map<string, string>();
   const sessionsByTokenHash = new Map<string, SessionRecord>();
-  const pantryByUserId = new Map<string, Set<string>>();
+  const pantryByUserId = new Map<string, Map<string, PantryItem>>();
 
   const seedSnapshot: SeedSnapshot = {
-    commonIngredients: [...commonIngredientsSeed],
+    commonIngredients: commonIngredientsSeed.map((item) => ({ ...item })),
     foodItems: foodItemsSeed.map((item) => ({ ...item, name: { ...item.name }, trend: [...item.trend] })),
     disruptions: disruptionsSeed.map((item) => ({
       ...item,
@@ -48,7 +49,7 @@ export function createInMemoryRepository(): AppRepository {
 
       usersById.set(user.id, user);
       userIdsByEmail.set(normalizedEmail, user.id);
-      pantryByUserId.set(user.id, new Set());
+      pantryByUserId.set(user.id, new Map());
 
       return { id: user.id, email: user.email };
     },
@@ -76,21 +77,41 @@ export function createInMemoryRepository(): AppRepository {
     },
 
     async getPantry(userId) {
-      return [...(pantryByUserId.get(userId) ?? new Set())].sort((left, right) => left.localeCompare(right));
+      const pantryMap = pantryByUserId.get(userId) ?? new Map<string, PantryItem>();
+      return [...pantryMap.values()].sort((a, b) => a.name.localeCompare(b.name));
     },
 
-    async addPantryItem(userId, name) {
-      const pantry = pantryByUserId.get(userId) ?? new Set<string>();
-      pantry.add(name);
-      pantryByUserId.set(userId, pantry);
-      return [...pantry].sort((left, right) => left.localeCompare(right));
+    async addPantryItem(userId, item) {
+      const pantryMap = pantryByUserId.get(userId) ?? new Map<string, PantryItem>();
+      const existing = pantryMap.get(item.name);
+      if (existing) {
+        pantryMap.set(item.name, { ...existing, quantity: existing.quantity + item.quantity });
+      } else {
+        pantryMap.set(item.name, { ...item });
+      }
+      pantryByUserId.set(userId, pantryMap);
+      return this.getPantry(userId);
     },
 
     async removePantryItem(userId, name) {
-      const pantry = pantryByUserId.get(userId) ?? new Set<string>();
-      pantry.delete(name);
-      pantryByUserId.set(userId, pantry);
-      return [...pantry].sort((left, right) => left.localeCompare(right));
+      const pantryMap = pantryByUserId.get(userId) ?? new Map<string, PantryItem>();
+      pantryMap.delete(name);
+      pantryByUserId.set(userId, pantryMap);
+      return this.getPantry(userId);
+    },
+
+    async updatePantryItem(userId, name, updates) {
+      const pantryMap = pantryByUserId.get(userId) ?? new Map<string, PantryItem>();
+      const existing = pantryMap.get(name);
+      if (existing) {
+        pantryMap.set(name, {
+          ...existing,
+          ...(updates.quantity !== undefined ? { quantity: updates.quantity } : {}),
+          ...(updates.unit !== undefined ? { unit: updates.unit } : {}),
+        });
+      }
+      pantryByUserId.set(userId, pantryMap);
+      return this.getPantry(userId);
     },
 
     async getSeedSnapshot() {

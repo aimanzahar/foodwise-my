@@ -1,5 +1,5 @@
 import { useI18n } from "@/lib/i18n";
-import { BarChart3, ChefHat, ShoppingBasket, Users } from "lucide-react";
+import { BadgeDollarSign, ChefHat, AlertTriangle } from "lucide-react";
 
 interface BottomNavProps {
   active: string;
@@ -7,10 +7,9 @@ interface BottomNavProps {
 }
 
 const tabs = [
-  { id: "dashboard", icon: BarChart3, labelKey: "dashboard" as const },
-  { id: "pantry", icon: ShoppingBasket, labelKey: "pantry" as const },
-  { id: "recipes", icon: ChefHat, labelKey: "recipes" as const },
-  { id: "community", icon: Users, labelKey: "community" as const },
+  { id: "harga", icon: BadgeDollarSign, labelKey: "harga" as const },
+  { id: "pantri", icon: ChefHat, labelKey: "pantriResipi" as const },
+  { id: "gangguan", icon: AlertTriangle, labelKey: "gangguan" as const },
 ];
 
 export function BottomNav({ active, onNavigate }: BottomNavProps) {
